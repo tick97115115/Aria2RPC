@@ -361,3 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Aria2RPC/Resources/aria2-win-64bit/aria2.conf

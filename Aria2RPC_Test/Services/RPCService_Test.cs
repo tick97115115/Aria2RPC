@@ -1,6 +1,4 @@
 using Aria2RPC.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Timers;
 
 namespace Aria2RPC_Test.Services
 {
@@ -12,7 +10,7 @@ namespace Aria2RPC_Test.Services
         [TestInitialize]
         public void TestInitialize()
         {
-            Service = new Aria2RPCService("");
+            Service = new Aria2RPCService();
         }
 
         [TestCleanup]
@@ -59,6 +57,7 @@ namespace Aria2RPC_Test.Services
             Service.RunAria2ServiceAsync().Wait();
 
             Service.ForceShutdown();
+            Service.ShutdownCheck();
             Assert.IsTrue(Service.HasExited);
         }
     }
