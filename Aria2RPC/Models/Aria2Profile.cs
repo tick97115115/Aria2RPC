@@ -30,27 +30,45 @@ namespace Aria2RPC.Models
         {
             return File.ReadAllText(ConfPath);
         }
-        public void SaveToProfile()
+        public void SaveProfile()
         {
             File.WriteAllText(ConfPath, ConvertToProfileText());
             File.WriteAllText(_lastModification, ConvertToJsonText());
         }
+
+        public string ConvertToArgs()
+        {
+            var builder = new StringBuilder();
+            var jsonNode = JsonNode.Parse(ConvertToJsonText());
+            foreach (var item in jsonNode.AsObject().AsEnumerable())
+            {
+                builder.Append($"--{item.Key}={item.Value.ToString()}");
+                builder.Append(" "); // blank used to seperate each options
+            }
+            return builder.ToString();
+        }
+
+        public Profile ReadSettings()
+        {
+            return JsonSerializer.Deserialize<Profile>(File.ReadAllText(_lastModification));
+        }
+
         public bool CheckProfileIntegrity()
         {
-            bool result;
-            try
+            if (File.Exists(_lastModification) && 
+                File.Exists(ConfPath) &&
+                ConvertToJsonText() == File.ReadAllText(_lastModification) &&
+                ConvertToProfileText() == File.ReadAllText(ConfPath)
+                )
             {
-                result = File.ReadAllText(_lastModification) == ConvertToJsonText();
-                return result;
+                return true;
             }
-            catch (Exception)
-            {
-                return false;
-            }
+            return false;
         }
+
         /**
-         * Basic Options - https://aria2.github.io/manual/en/html/aria2c.html#basic-options
-         */
+        * Basic Options - https://aria2.github.io/manual/en/html/aria2c.html#basic-options
+        */
         [JsonPropertyName("dir")] public string? Dir { get; set; } = Path.Combine("Resources", "download");
         [JsonPropertyName("input-file")] public string? InputFile { get; set; } =
             File.Exists(Path.Combine("Resources", "aria2-win-64bit", "aria2.session")) ?
@@ -85,7 +103,7 @@ namespace Aria2RPC.Models
         [JsonPropertyName("auto-file-renaming")] public bool? AutoFileRenaming { get; set; }
         [JsonPropertyName("auto-save-interval")] public int? AutoSaveInterval { get; set; } // Second
         [JsonPropertyName("conditional-get")] public bool? ConditionalGet { get; set; }
-        [JsonPropertyName("conf-path")]  public string ConfPath { get; set; } = Path.Combine("Resources", "aria2-win-64bit", "aria2.conf");
+        [JsonPropertyName("conf-path")] [JsonIgnore] public string ConfPath { get; set; } = Path.Combine("Resources", "aria2-win-64bit", "aria2.conf");
         [JsonPropertyName("console-log-level")] public string? ConsoleLogLevel { get; }
         [JsonPropertyName("content-disposition-default-utf8")] public bool? ContentDispositionDefaultUtf8 { get; set; }
         [JsonPropertyName("daemon")] public bool? Deamon { get; set; }
@@ -135,7 +153,7 @@ namespace Aria2RPC.Models
         [JsonPropertyName("save-session-interval")] public int? SaveSessionInterval { get; set; }
         [JsonPropertyName("socket-recv-buffer-size")] public int? SocketRecvBufferSize { get; set; }
         [JsonPropertyName("stop")] public int? Stop { get; set; }
-        [JsonPropertyName("stop-with-process")] public string StopWithProcess { get; set; } = Environment.ProcessId.ToString(); // useful
+        [JsonPropertyName("stop-with-process")] [JsonIgnore] public string StopWithProcess { get; set; } = Environment.ProcessId.ToString(); // useful
         [JsonPropertyName("truncate-console-readout")] public bool? TruncateConsoleReadout { get; set; }
     }
 }

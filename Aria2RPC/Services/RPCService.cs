@@ -2,17 +2,27 @@
 using Aria2RPC.Models;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Aria2RPC.Services
 {
     public class Aria2RPCService : Process, IAria2RPCService
     {
-        private Profile _profile = new Profile();
+        public Profile Aria2Profile = new Profile();
 
         public async Task RunAria2ServiceAsync()
         {
+            if (File.Exists(Aria2Profile.ConfPath) is false)
+            {
+                Aria2Profile.SaveProfile();
+                LoadSettings();
+            }
+            else
+            {
+                LoadSettings();
+            }
             StartInfo.FileName = @"Resources\aria2-win-64bit\aria2c.exe";
-            StartInfo.Arguments = $"--conf-path={_profile.ConfPath}";
+            StartInfo.Arguments = $"--conf-path={Aria2Profile.ConfPath} --stop-with-process={Aria2Profile.StopWithProcess}";
 
             EnableRaisingEvents = true;
             StartInfo.CreateNoWindow = false;
@@ -21,10 +31,6 @@ namespace Aria2RPC.Services
             StartInfo.RedirectStandardOutput = true;
             Start();
 
-            if (_profile.CheckProfileIntegrity() is false)
-            {
-                _profile.SaveToProfile();
-            }
 
             await StartupCheck();
         }
@@ -69,13 +75,13 @@ namespace Aria2RPC.Services
 
         public Aria2NetClient GetClient()
         {
-            string protocal = _profile.RpcSecure == true ? "https" : "http";
-            int port = _profile.RpcListenPort ?? 6800;
-            if (string.IsNullOrEmpty(_profile.RpcSecret))
+            string protocal = Aria2Profile.RpcSecure == true ? "https" : "http";
+            int port = Aria2Profile.RpcListenPort ?? 6800;
+            if (string.IsNullOrEmpty(Aria2Profile.RpcSecret))
             {
                 return new Aria2NetClient($"{protocal}://127.0.0.1:{port}/jsonrpc");
             }
-            return new Aria2NetClient($"{protocal}://127.0.0.1:{port}/jsonrpc", _profile.RpcSecret);
+            return new Aria2NetClient($"{protocal}://127.0.0.1:{port}/jsonrpc", Aria2Profile.RpcSecret);
         }
 
         public async Task SoftStopAsync()
@@ -100,10 +106,17 @@ namespace Aria2RPC.Services
             ShutdownCheck();
         }
 
-        public void LoadAndSaveProfileFromJson(string jsonText)
+
+        public void LoadSettings()
         {
-            _profile = JsonSerializer.Deserialize<Profile>(jsonText);
-            _profile.SaveToProfile();
+            Aria2Profile = Aria2Profile.ReadSettings();
+        }
+
+        public void RestoreProfileToDefault()
+        {
+            var profile = new Profile();
+            Aria2Profile = profile;
+            profile.SaveProfile();
         }
     }
 }

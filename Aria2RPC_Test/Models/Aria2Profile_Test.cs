@@ -36,18 +36,16 @@ namespace Aria2RPC_Test.Models
 
 
         [TestMethod]
-        public void ConvertToProfileText_ProcessConfigFile()
+        public void CheckProfileIntegrity_Default()
         {
-            Aria2Profile.SaveToProfile();
-            var result = Aria2Profile.CheckProfileIntegrity();
-            Assert.IsTrue(result);
+            Aria2Profile.SaveProfile();
+            Assert.IsTrue(Aria2Profile.CheckProfileIntegrity());
         }
-
 
         [TestMethod]
         public void ReadProfileText_Default()
         {
-            Aria2Profile.SaveToProfile();
+            Aria2Profile.SaveProfile();
             Assert.AreEqual(Aria2Profile.ReadProfileText(), Aria2Profile.ConvertToProfileText());
         }
     }

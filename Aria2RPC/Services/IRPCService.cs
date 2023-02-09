@@ -13,6 +13,7 @@ namespace Aria2RPC.Services
         public void SoftStop();
 
         public void ForceShutdown();
-        public void LoadAndSaveProfileFromJson(string jsonText);
+        public void LoadSettings();
+        public void RestoreProfileToDefault();
     }
 }

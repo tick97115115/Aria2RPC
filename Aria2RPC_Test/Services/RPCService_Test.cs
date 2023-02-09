@@ -60,5 +60,14 @@ namespace Aria2RPC_Test.Services
             Service.ShutdownCheck();
             Assert.IsTrue(Service.HasExited);
         }
+
+        [TestMethod]
+        public void LoadSettings_Default()
+        {
+            Service.RunAria2ServiceAsync().Wait();
+            Service.Aria2Profile.SaveProfile();
+            Service.LoadSettings();
+            Assert.IsTrue(Service.Aria2Profile.CheckProfileIntegrity());
+        }
     }
 }
